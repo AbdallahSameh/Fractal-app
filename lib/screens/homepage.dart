@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:isolate';
-
 import 'package:flutter/material.dart';
+import 'package:fractals/fractal_isolate.dart';
 import 'package:fractals/modules/line.dart';
 import 'package:fractals/painter.dart';
-import 'package:fractals/utility_functions/fractal_tree.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,38 +19,15 @@ class _HomePageState extends State<HomePage> {
   double depth = 0;
   List<Line>? _points;
   SendPort? drawFractal;
+  late FractalIsolate isolate;
+  late Future<void> isolateInitialized;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      canvasSize = Offset(MediaQuery.sizeOf(context).width, 600);
-      initIsolate();
-    });
-  }
-
-  void initIsolate() async {
-    final receivePort = ReceivePort();
-    final isolate = await Isolate.spawn(generateFractal, receivePort.sendPort);
-    drawFractal = await receivePort.first as SendPort;
-  }
-
-  void requestFractal() async {
-    final responsePort = ReceivePort();
-
-    drawFractal!.send({
-      'sendPort': responsePort.sendPort,
-      'canvasSize': canvasSize,
-      'depth': depth,
-      'deltaAngle': deltaAngle,
-    });
-
-    final points = await responsePort.first as List<Line>;
-    setState(() {
-      _points = points;
-    });
-
-    responsePort.close();
+    canvasSize = Offset.zero;
+    isolate = FractalIsolate(canvasSize: canvasSize);
+    isolateInitialized = isolate.initIsolate();
   }
 
   @override
@@ -70,14 +45,26 @@ class _HomePageState extends State<HomePage> {
                   height: 600,
                   child: LayoutBuilder(
                     builder: (context, constraints) {
-                      canvasSize = Offset(
-                        constraints.maxWidth,
-                        constraints.maxHeight,
-                      );
-                      return CustomPaint(
-                        painter: _points == null
-                            ? null
-                            : Painter(points: _points!),
+                      return FutureBuilder(
+                        future: isolateInitialized,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            try {
+                              isolate.canvasSize = Offset(
+                                constraints.maxWidth,
+                                constraints.maxHeight,
+                              );
+                            } catch (e) {
+                              debugPrint(e.toString());
+                            }
+                          }
+                          return CustomPaint(
+                            painter: _points == null
+                                ? null
+                                : Painter(points: _points!),
+                          );
+                        },
                       );
                     },
                   ),
@@ -97,8 +84,12 @@ class _HomePageState extends State<HomePage> {
                         onChanged: (value) {
                           setState(() {
                             currentSlider1Value = value;
-                            deltaAngle = value;
-                            requestFractal();
+                            isolate.deltaAngle = value;
+                          });
+                          isolate.requestFractal((data) {
+                            setState(() {
+                              _points = data;
+                            });
                           });
                         },
                       ),
@@ -117,8 +108,12 @@ class _HomePageState extends State<HomePage> {
                         onChanged: (value) {
                           setState(() {
                             currentSlider2Value = value;
-                            depth = value;
-                            requestFractal();
+                            isolate.depth = value;
+                          });
+                          isolate.requestFractal((data) {
+                            setState(() {
+                              _points = data;
+                            });
                           });
                         },
                       ),
@@ -132,32 +127,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-void generateFractal(SendPort mainSendPort) {
-  final port = ReceivePort();
-  mainSendPort.send(port.sendPort);
-
-  port.listen((args) {
-    final int branchLength = 90;
-    final deltaAngle = args['deltaAngle'];
-    final double depth = args['depth'];
-    final Offset canvasSize = args['canvasSize'];
-    SendPort response = args['sendPort'];
-
-    Offset lastPoint = Offset(
-      (canvasSize.dx / 2) - 1,
-      (canvasSize.dy - 1) - branchLength,
-    );
-
-    final points = fractalTree(
-      lastPoint: lastPoint,
-      branchLength: branchLength,
-      deltaAngle: deltaAngle,
-      angle: 90,
-      depth: depth,
-      points: [],
-    );
-    response.send(points);
-  });
 }
