@@ -18,9 +18,9 @@ class _HomePageState extends State<HomePage> {
   double currentSlider2Value = 0;
   late Offset canvasSize;
   double deltaAngle = 0;
+  double depth = 0;
   List<Line>? _points;
   SendPort? drawFractal;
-  Timer? debounce;
 
   @override
   void initState() {
@@ -35,7 +35,6 @@ class _HomePageState extends State<HomePage> {
     final receivePort = ReceivePort();
     final isolate = await Isolate.spawn(generateFractal, receivePort.sendPort);
     drawFractal = await receivePort.first as SendPort;
-    requestFractal();
   }
 
   void requestFractal() async {
@@ -44,6 +43,7 @@ class _HomePageState extends State<HomePage> {
     drawFractal!.send({
       'sendPort': responsePort.sendPort,
       'canvasSize': canvasSize,
+      'depth': depth,
       'deltaAngle': deltaAngle,
     });
 
@@ -68,35 +68,61 @@ class _HomePageState extends State<HomePage> {
                 child: Container(
                   width: MediaQuery.sizeOf(context).width,
                   height: 600,
-                  child: CustomPaint(
-                    painter: _points == null ? null : Painter(points: _points!),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      canvasSize = Offset(
+                        constraints.maxWidth,
+                        constraints.maxHeight,
+                      );
+                      return CustomPaint(
+                        painter: _points == null
+                            ? null
+                            : Painter(points: _points!),
+                      );
+                    },
                   ),
                 ),
               ),
               Column(
                 children: [
-                  Slider(
-                    min: -180,
-                    max: 180,
-                    divisions: 360,
-                    label: currentSlider1Value.round().toString(),
-                    value: currentSlider1Value,
-                    onChanged: (value) {
-                      setState(() {
-                        currentSlider1Value = value;
-                        deltaAngle = value;
-                        requestFractal();
-                      });
-                    },
+                  Row(
+                    children: [
+                      Text('Angle'),
+                      Slider(
+                        min: -180,
+                        max: 180,
+                        divisions: 360,
+                        label: currentSlider1Value.round().toString(),
+                        value: currentSlider1Value,
+                        onChanged: (value) {
+                          setState(() {
+                            currentSlider1Value = value;
+                            deltaAngle = value;
+                            requestFractal();
+                          });
+                        },
+                      ),
+                    ],
                   ),
-                  Slider(
-                    label: currentSlider2Value.toString(),
-                    value: currentSlider2Value,
-                    onChanged: (value) {
-                      setState(() {
-                        currentSlider2Value = value;
-                      });
-                    },
+
+                  Row(
+                    children: [
+                      Text('Depth'),
+                      Slider(
+                        label: currentSlider2Value.round().toString(),
+                        min: 0,
+                        max: 12,
+                        divisions: 12,
+                        value: currentSlider2Value,
+                        onChanged: (value) {
+                          setState(() {
+                            currentSlider2Value = value;
+                            depth = value;
+                            requestFractal();
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -115,11 +141,12 @@ void generateFractal(SendPort mainSendPort) {
   port.listen((args) {
     final int branchLength = 90;
     final deltaAngle = args['deltaAngle'];
+    final double depth = args['depth'];
     final Offset canvasSize = args['canvasSize'];
     SendPort response = args['sendPort'];
 
     Offset lastPoint = Offset(
-      (canvasSize.dx / 2) - 20,
+      (canvasSize.dx / 2) - 1,
       (canvasSize.dy - 1) - branchLength,
     );
 
@@ -128,6 +155,7 @@ void generateFractal(SendPort mainSendPort) {
       branchLength: branchLength,
       deltaAngle: deltaAngle,
       angle: 90,
+      depth: depth,
       points: [],
     );
     response.send(points);

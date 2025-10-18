@@ -7,9 +7,11 @@ List<Line> fractalTree({
   required branchLength,
   required deltaAngle,
   angle,
+  required depth,
+  currentDepth = 0,
   required List<Line> points,
 }) {
-  if (branchLength <= 2) {
+  if (branchLength <= 2 || currentDepth == depth) {
     return points;
   }
 
@@ -19,12 +21,15 @@ List<Line> fractalTree({
   );
 
   points.add(Line(start: lastPoint, end: branch));
+  currentDepth++;
 
   fractalTree(
     lastPoint: branch,
     branchLength: branchLength * 0.72,
     deltaAngle: deltaAngle,
     angle: angle + deltaAngle,
+    depth: depth,
+    currentDepth: currentDepth,
     points: points,
   );
 
@@ -33,6 +38,8 @@ List<Line> fractalTree({
     branchLength: branchLength * 0.72,
     deltaAngle: deltaAngle,
     angle: angle - deltaAngle,
+    depth: depth,
+    currentDepth: currentDepth,
     points: points,
   );
 
