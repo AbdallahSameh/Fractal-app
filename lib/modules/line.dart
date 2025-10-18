@@ -1,0 +1,7 @@
+import 'package:flutter/material.dart';
+
+class Line {
+  Offset start, end;
+
+  Line({required this.start, required this.end});
+}
