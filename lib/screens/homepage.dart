@@ -75,23 +75,25 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       Text('Angle'),
-                      Slider(
-                        min: -180,
-                        max: 180,
-                        divisions: 360,
-                        label: currentSlider1Value.round().toString(),
-                        value: currentSlider1Value,
-                        onChanged: (value) {
-                          setState(() {
-                            currentSlider1Value = value;
-                            isolate.deltaAngle = value;
-                          });
-                          isolate.requestFractal((data) {
+                      Expanded(
+                        child: Slider(
+                          min: -180,
+                          max: 180,
+                          divisions: 360,
+                          label: currentSlider1Value.round().toString(),
+                          value: currentSlider1Value,
+                          onChanged: (value) {
                             setState(() {
-                              _points = data;
+                              currentSlider1Value = value;
+                              isolate.deltaAngle = value;
                             });
-                          });
-                        },
+                            isolate.requestFractal((data) {
+                              setState(() {
+                                _points = data;
+                              });
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -99,23 +101,24 @@ class _HomePageState extends State<HomePage> {
                   Row(
                     children: [
                       Text('Depth'),
-                      Slider(
-                        label: currentSlider2Value.round().toString(),
-                        min: 0,
-                        max: 12,
-                        divisions: 12,
-                        value: currentSlider2Value,
-                        onChanged: (value) {
-                          setState(() {
-                            currentSlider2Value = value;
-                            isolate.depth = value;
-                          });
-                          isolate.requestFractal((data) {
+                      Expanded(
+                        child: Slider(
+                          min: 0,
+                          max: 12,
+                          divisions: 12,
+                          value: currentSlider2Value,
+                          onChanged: (value) {
                             setState(() {
-                              _points = data;
+                              currentSlider2Value = value;
+                              isolate.depth = value;
                             });
-                          });
-                        },
+                            isolate.requestFractal((data) {
+                              setState(() {
+                                _points = data;
+                              });
+                            });
+                          },
+                        ),
                       ),
                     ],
                   ),
