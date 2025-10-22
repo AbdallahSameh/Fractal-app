@@ -1,7 +1,7 @@
 import 'dart:isolate';
 import 'package:flutter/widgets.dart';
-import 'package:fractals/modules/line.dart';
-import 'package:fractals/utility_functions/fractal_tree.dart';
+import 'package:fractals/models/line.dart';
+import 'package:fractals/utils/fractal_tree.dart';
 
 class FractalIsolate {
   late Offset canvasSize;

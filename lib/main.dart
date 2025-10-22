@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fractals/screens/homepage.dart';
+import 'package:fractals/ui/pages/homepage.dart';
 
 void main() {
   runApp(const MainApp());

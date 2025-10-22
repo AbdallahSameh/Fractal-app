@@ -1,8 +1,8 @@
 import 'dart:isolate';
 import 'package:flutter/material.dart';
-import 'package:fractals/fractal_isolate.dart';
-import 'package:fractals/modules/line.dart';
-import 'package:fractals/painter.dart';
+import 'package:fractals/services/fractal_isolate.dart';
+import 'package:fractals/models/line.dart';
+import 'package:fractals/ui/painters/painter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
