@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fractals/models/line.dart';
+import '../../models/line.dart';
 
 class Painter extends CustomPainter {
   final List<Line> points;

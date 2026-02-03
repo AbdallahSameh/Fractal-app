@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:fractals/models/line.dart';
+import '../models/line.dart';
 
 List<Line> fractalTree({
   required Offset lastPoint,
