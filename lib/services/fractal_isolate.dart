@@ -18,7 +18,7 @@ class FractalIsolate {
 
   Future<void> initIsolate() async {
     final receivePort = ReceivePort();
-    final isolate = await Isolate.spawn(generateFractal, receivePort.sendPort);
+    await Isolate.spawn(generateFractal, receivePort.sendPort);
     drawFractal = await receivePort.first as SendPort;
   }
 
